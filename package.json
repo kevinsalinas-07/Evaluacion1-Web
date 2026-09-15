@@ -1,0 +1,12 @@
+{
+  "name": "techsupport-api",
+  "version": "1.0.0",
+  "description": "API REST para gestión de incidencias técnicas en TechSupport S.A.",
+  "main": "app.js",
+  "scripts": {
+    "start": "node app.js"
+  },
+  "dependencies": {
+    "express": "^4.19.2"
+  }
+}
