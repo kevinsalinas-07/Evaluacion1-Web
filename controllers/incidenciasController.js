@@ -1,4 +1,4 @@
-
+const { obtenerClasificacionPrioridad } = require('../utils/helpers');
 // Almacenamiento en memoria.
 const incidencias = [];
 let nextId = 1;
@@ -173,4 +173,77 @@ const eliminarIncidencia = (req, res) => {
   return res.status(200).json({
     mensaje: 'Incidencia eliminada correctamente'
   });
+};
+
+
+// GET /estadisticas
+const obtenerEstadisticas = (req, res) => {
+
+//    Se utiliza el método reduce() para procesar el acumulador en una sola pasada.
+  
+  const estadisticas = incidencias.reduce(
+    (acc, incidencia) => {
+      acc.totalIncidencias += 1;
+
+      switch (incidencia.estado) {
+        case 'Pendiente':
+          acc.pendientes += 1;
+          break;
+        case 'En Proceso':
+          acc.enProceso += 1;
+          break;
+        case 'Resuelta':
+          acc.resueltas += 1;
+          break;
+        case 'Cancelada':
+          acc.canceladas += 1;
+          break;
+      }
+
+      return acc;
+    },
+    {
+      totalIncidencias: 0,
+      pendientes: 0,
+      enProceso: 0,
+      resueltas: 0,
+      canceladas: 0
+    }
+  );
+
+  return res.status(200).json(estadisticas);
+};
+
+const obtenerClasificacion = (req, res) => {
+  const idBuscado = parseInt(req.params.id, 10);
+
+  if (isNaN(idBuscado)) {
+    return res.status(400).json({ error: 'El ID proporcionado debe ser un número entero' });
+  }
+
+  const incidencia = incidencias.find((item) => item.id === idBuscado);
+
+  if (!incidencia) {
+    return res.status(404).json({
+      mensaje: 'Incidencia no encontrada'
+    });
+  }
+
+  // Uso de la función auxiliar que implementa el switch
+  const clasificacion = obtenerClasificacionPrioridad(incidencia.prioridad);
+
+  return res.status(200).json({
+    id: incidencia.id,
+    clasificacion: clasificacion
+  });
+};
+
+module.exports = {
+  registrarIncidencia,
+  listarIncidencias,
+  buscarIncidenciaPorId,
+  cambiarEstadoIncidencia,
+  eliminarIncidencia,
+  obtenerEstadisticas,
+  obtenerClasificacion
 };
