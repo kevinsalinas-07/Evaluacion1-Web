@@ -1,4 +1,5 @@
-// Almacenamiento en memoria según requerimiento
+
+// Almacenamiento en memoria.
 const incidencias = [];
 let nextId = 1;
 
@@ -77,9 +78,99 @@ const registrarIncidencia = (req, res) => {
 // GET /incidencias
 const listarIncidencias = (req, res) => {
   return res.status(200).json(incidencias);
+}; 
+
+// GET /incidencias/:id
+const buscarIncidenciaPorId = (req, res) => {
+  const idBuscado = parseInt(req.params.id, 10);
+
+  if (isNaN(idBuscado)) {
+    return res.status(400).json({ error: 'El ID proporcionado debe ser un número entero' });
+  }
+
+  const incidenciaEncontrada = incidencias.find((item) => item.id === idBuscado);
+
+  if (!incidenciaEncontrada) {
+    return res.status(404).json({
+      mensaje: 'Incidencia no encontrada'
+    });
+  }
+
+  return res.status(200).json(incidenciaEncontrada);
 };
 
-module.exports = {
-  registrarIncidencia,
-  listarIncidencias
+// PUT /incidencias/:id/estado
+const cambiarEstadoIncidencia = (req, res) => {
+  const idBuscado = parseInt(req.params.id, 10);
+  const { estado } = req.body;
+
+  if (isNaN(idBuscado)) {
+    return res.status(400).json({ error: 'El ID proporcionado debe ser un número entero' });
+  }
+
+  if (!estado || typeof estado !== 'string') {
+    return res.status(400).json({ error: 'El campo estado es requerido y debe ser texto' });
+  }
+
+  const incidencia = incidencias.find((item) => item.id === idBuscado);
+
+  if (!incidencia) {
+    return res.status(404).json({
+      mensaje: 'Incidencia no encontrada'
+    });
+  }
+
+  const estadoLimpio = estado.trim().toLowerCase();
+  let estadoValido = '';
+
+  //  Uso de switch para validar y asignar el estado
+  switch (estadoLimpio) {
+    case 'pendiente':
+      estadoValido = 'Pendiente';
+      break;
+    case 'en proceso':
+      estadoValido = 'En Proceso';
+      break;
+    case 'resuelta':
+      estadoValido = 'Resuelta';
+      break;
+    case 'cancelada':
+      estadoValido = 'Cancelada';
+      break;
+    default:
+      return res.status(400).json({
+        error: 'Estado inválido. Solo se permite: Pendiente, En Proceso, Resuelta o Cancelada'
+      });
+  }
+
+  incidencia.estado = estadoValido;
+
+  return res.status(200).json({
+    mensaje: 'Estado de la incidencia actualizado correctamente',
+    incidencia
+  });
+};
+
+// DELETE /incidencias/:id
+const eliminarIncidencia = (req, res) => {
+  const idBuscado = parseInt(req.params.id, 10);
+
+  if (isNaN(idBuscado)) {
+    return res.status(400).json({ error: 'El ID proporcionado debe ser un número entero' });
+  }
+
+  // REQUISITO OBLIGATORIO: Uso de findIndex y splice
+  const indice = incidencias.findIndex((item) => item.id === idBuscado);
+
+  if (indice === -1) {
+    return res.status(404).json({
+      mensaje: 'Incidencia no encontrada'
+    });
+  }
+
+  incidencias.splice(indice, 1);
+
+  return res.status(200).json({
+    mensaje: 'Incidencia eliminada correctamente'
+  });
 };
