@@ -1,4 +1,4 @@
-
+const { obtenerClasificacionPrioridad } = require('../utils/helpers');
 // Almacenamiento en memoria.
 const incidencias = [];
 let nextId = 1;
@@ -6,7 +6,6 @@ let nextId = 1;
 // POST /incidencias
 const registrarIncidencia = (req, res) => {
   const { empleado, area, descripcion, prioridad } = req.body;
-  const { obtenerClasificacionPrioridad } = require('../utils/helpers');
 
   // Validación 1: Verificar existencia de todos los campos obligatorios
   if (!empleado || !area || !descripcion || !prioridad) {
@@ -213,4 +212,38 @@ const obtenerEstadisticas = (req, res) => {
   );
 
   return res.status(200).json(estadisticas);
+};
+
+const obtenerClasificacion = (req, res) => {
+  const idBuscado = parseInt(req.params.id, 10);
+
+  if (isNaN(idBuscado)) {
+    return res.status(400).json({ error: 'El ID proporcionado debe ser un número entero' });
+  }
+
+  const incidencia = incidencias.find((item) => item.id === idBuscado);
+
+  if (!incidencia) {
+    return res.status(404).json({
+      mensaje: 'Incidencia no encontrada'
+    });
+  }
+
+  // Uso de la función auxiliar que implementa el switch
+  const clasificacion = obtenerClasificacionPrioridad(incidencia.prioridad);
+
+  return res.status(200).json({
+    id: incidencia.id,
+    clasificacion: clasificacion
+  });
+};
+
+module.exports = {
+  registrarIncidencia,
+  listarIncidencias,
+  buscarIncidenciaPorId,
+  cambiarEstadoIncidencia,
+  eliminarIncidencia,
+  obtenerEstadisticas,
+  obtenerClasificacion
 };
